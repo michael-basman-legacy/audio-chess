@@ -1,2 +1,2 @@
 # audio-chess
-Booklets and data for audio chess CASSettes
+Booklets and data accompanying audio chess CASSettes, which can be listened to on the [Michael Basman Legacy YouTube channel](https://www.youtube.com/@MichaelBasmanLegacy).
