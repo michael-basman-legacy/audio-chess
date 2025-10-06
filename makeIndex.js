@@ -15,7 +15,7 @@ async function walkForPdfs(dir) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       results.push(...(await walkForPdfs(full)));
-    } else if (entry.isFile() && full.toLowerCase().endsWith(".pdf")) {
+    } else if (entry.isFile() && entry.name.endsWith(".pdf") || entry.name.endsWith("jpg")) {
       results.push(full);
     }
   }
@@ -74,11 +74,28 @@ ${listItems}
     }
 
     const pdfs = await walkForPdfs(docsDir);
+	
+	const pdfObjs = pdfs.map(name => ({
+        name,
+        tokens: path.basename(name).match(/\d+|\D+/g).map(t => (isNaN(t) ? t.toLowerCase() : Number(t)))
+    }));
 
-    // Sort PDFs by filename (you can change sorting if you prefer date or size)
-    pdfs.sort((a, b) => path.basename(a).localeCompare(path.basename(b)));
+	pdfObjs.sort((a, b) => {
+	  const len = Math.max(a.tokens.length, b.tokens.length);
+	  for (let i = 0; i < len; i++) {
+		const x = a.tokens[i], y = b.tokens[i];
+		if (x === undefined) return -1;
+		if (y === undefined) return 1;
+		if (typeof x === 'number' && typeof y === 'number') {
+		  if (x !== y) return x - y;
+		} else if (x !== y) {
+		  return x < y ? -1 : 1;
+		}
+	  }
+	  return 0;
+	});
 
-    await generateHtmlIndex(pdfs);
+    await generateHtmlIndex(pdfObjs.map(obj => obj.name));
     console.log("index.html has been written with", pdfs.length, "PDF(s).");
   } catch (err) {
     console.error("Failed:", err);
